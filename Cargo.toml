@@ -1,0 +1,11 @@
+[package]
+name = "coin"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tim McNamara <tim@mcnamara.nz>"]
+license = "CC0"
+description = "A data type for representing Boolean values that is resistant to bit flips."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
