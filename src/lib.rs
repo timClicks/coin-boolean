@@ -1,4 +1,4 @@
-use std::convert::From;
+use std::{convert::From, ops::Deref, hash::Hash};
 
 /// A bit flip resistant Boolean type
 ///
@@ -49,15 +49,43 @@ use std::convert::From;
 /// tolerate 3 bit flips per byte before an incorrect value is returned.
 ///
 /// For a more thorough introduction, see the talk "Software Security in the Presence of
-/// Faults" by Peter Gutman (PDF <https://www.cs.auckland.ac.nz/~pgut001/pubs/software_faults.pdf>)
+/// Faults" by Peter Gutmann (PDF <https://www.cs.auckland.ac.nz/~pgut001/pubs/software_faults.pdf>)
 /// (talk recording <https://www.youtube.com/watch?v=z0C7ymx5Jtk>).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy)] // TODO: custom Hash
 pub struct Coin(u8);
+
+impl Coin {
+    #[inline(always)]
+    fn to_bool(&self) -> bool {
+        self.0.count_ones() >= 4
+    }
+}
+
+impl Eq for Coin {}
+
+impl PartialEq for Coin {
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        self.to_bool() == other.to_bool()
+    }
+}
+
+impl Ord for Coin {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.to_bool().cmp(&other.to_bool())
+    }
+}
+
+impl PartialOrd for Coin {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.to_bool().partial_cmp(&other.to_bool())
+    }
+}
 
 impl From<Coin> for bool {
     #[inline(always)]
     fn from(c: Coin) -> Self {
-        c.0.count_ones() >= 4
+        c.to_bool()
     }
 }
 
