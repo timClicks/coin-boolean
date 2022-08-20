@@ -1,4 +1,4 @@
-# coin
+# coin: a radiation-safe Boolean
 
 A `Coin` is data type for representing Boolean values that is resistant to bit
 flips. Prefer `Coin` to `bool` in safety-critical environments with long-lived
