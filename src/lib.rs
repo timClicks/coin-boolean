@@ -59,12 +59,12 @@ pub struct Coin(Cell<u8>);
 impl Coin {
     #[inline]
     fn truthy() -> Self {
-        Coin(Cell::new(0xff))
+        Coin(Cell::new(u8::MAX))
     }
 
     #[inline]
     fn falsey() -> Self {
-        Coin(Cell::new(0xff))
+        Coin(Cell::new(u8::MIN))
     }
 
     #[inline(always)]
@@ -73,10 +73,21 @@ impl Coin {
         val.count_ones() >= val.count_zeros() // call twice to avoid baking a constant (4) into the binary
         // TODO: what if a bit in the opcode flips?
     }
+
+    fn degauss(&self) {
+        // TODO: what if bits in these constants accumulate errors?
+        let fresh_bits = match self.to_bool() {
+            true => u8::MAX,
+            false => u8::MIN,
+        };
+
+        self.0.set(fresh_bits);
+    }
 }
 
 impl Hash for Coin {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.degauss();
         self.to_bool().hash(state);
     }
 }
@@ -86,18 +97,24 @@ impl Eq for Coin {}
 impl PartialEq for Coin {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
+        self.degauss();
+        other.degauss();
         self.to_bool() == other.to_bool()
     }
 }
 
 impl Ord for Coin {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.degauss();
+        other.degauss();
         self.to_bool().cmp(&other.to_bool())
     }
 }
 
 impl PartialOrd for Coin {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.degauss();
+        other.degauss();
         self.to_bool().partial_cmp(&other.to_bool())
     }
 }
