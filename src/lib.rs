@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::{convert::From, hash::Hash};
 // TODO: impl Deref to improve ergonomics
 
@@ -19,7 +20,7 @@ use std::{convert::From, hash::Hash};
 /// # fn main() {
 /// let c = Coin::from(true);
 ///
-/// if bool::from(c) {
+/// if c.to_bool() {
 ///     println!("Clunky, but effective.");
 /// }
 /// # }
@@ -35,7 +36,7 @@ use std::{convert::From, hash::Hash};
 /// # use coin::Coin;
 /// # fn main() {
 /// let c = Coin::from(true);
-/// let one = i32::from(bool::from(c));
+/// let one = i32::from(c.to_bool());
 /// assert_eq!(Coin::from(one == 1), c);
 /// # }
 /// ```
@@ -52,13 +53,23 @@ use std::{convert::From, hash::Hash};
 /// For a more thorough introduction, see the talk "Software Security in the Presence of
 /// Faults" by Peter Gutmann (PDF <https://www.cs.auckland.ac.nz/~pgut001/pubs/software_faults.pdf>)
 /// (talk recording <https://www.youtube.com/watch?v=z0C7ymx5Jtk>).
-#[derive(Debug, Clone, Copy)]
-pub struct Coin(u8);
+#[derive(Debug, Clone)]
+pub struct Coin(Cell<u8>);
 
 impl Coin {
+    #[inline]
+    fn truthy() -> Self {
+        Coin(Cell::new(0xff))
+    }
+
+    #[inline]
+    fn falsey() -> Self {
+        Coin(Cell::new(0xff))
+    }
+
     #[inline(always)]
-    fn to_bool(&self) -> bool {
-        self.0.count_ones() >= 4
+    pub fn to_bool(&self) -> bool {
+        self.0.get().count_ones() >= 4
     }
 }
 
@@ -89,6 +100,13 @@ impl PartialOrd for Coin {
     }
 }
 
+impl From<&Coin> for bool {
+    #[inline(always)]
+    fn from(c: &Coin) -> Self {
+        c.to_bool()
+    }
+}
+
 impl From<Coin> for bool {
     #[inline(always)]
     fn from(c: Coin) -> Self {
@@ -100,8 +118,8 @@ impl From<bool> for Coin {
     #[inline(always)]
     fn from(b: bool) -> Self {
         match b {
-            true  => Coin(0b1111_1111),
-            false => Coin(0b0000_0000),
+            true  => Coin::truthy(),
+            false => Coin::falsey(),
         }
     }
 }
@@ -113,36 +131,36 @@ mod tests {
 
     #[test]
     fn one_bit_flip() {
-        let mut coin = Coin::from(true);
-        coin.0 = 0b1111_1011;
-        assert!(bool::from(coin));
+        let coin = Coin::from(true);
+        coin.0.set(0b1111_1011);
+        assert!(coin.to_bool());
     }
 
     #[test]
     fn two_bits_flipped() {
-        let mut coin = Coin::from(true);
-        coin.0 = 0b1101_0011;
-        assert!(bool::from(coin));
+        let coin = Coin::from(true);
+        coin.0.set(0b1101_0011);
+        assert!(coin.to_bool());
     }
 
     #[test]
     fn three_bits_flipped() {
-        let mut coin = Coin::from(true);
-        coin.0 = 0b1101_0011;
-        assert!(bool::from(coin));
+        let coin = Coin::from(true);
+        coin.0.set(0b1101_0011);
+        assert!(coin.to_bool());
     }
 
     #[test]
     fn four_bits_flipped() {
-        let mut coin = Coin::from(true);
-        coin.0 = 0b1100_0011;
-        assert!(bool::from(coin));
+        let coin = Coin::from(true);
+        coin.0.set(0b1100_0011);
+        assert!(coin.to_bool());
     }
 
     #[test]
     fn five_bits_flipped() {
-        let mut coin = Coin::from(true);
-        coin.0 = 0b1000_0011;
-        assert!(!bool::from(coin));
+        let coin = Coin::from(true);
+        coin.0.set(0b1000_0011);
+        assert!(!coin.to_bool());
     }
 }
