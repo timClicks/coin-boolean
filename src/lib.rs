@@ -1,4 +1,5 @@
-use std::{convert::From, ops::Deref, hash::Hash};
+use std::{convert::From, hash::Hash};
+// TODO: impl Deref to improve ergonomics
 
 /// A bit flip resistant Boolean type
 ///
