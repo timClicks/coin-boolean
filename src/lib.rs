@@ -69,7 +69,9 @@ impl Coin {
 
     #[inline(always)]
     pub fn to_bool(&self) -> bool {
-        self.0.get().count_ones() >= 4
+        let val = self.0.get();
+        val.count_ones() >= val.count_zeros() // call twice to avoid baking a constant (4) into the binary
+        // TODO: what if a bit in the opcode flips?
     }
 }
 
