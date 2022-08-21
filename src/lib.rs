@@ -51,13 +51,19 @@ use std::{convert::From, ops::Deref, hash::Hash};
 /// For a more thorough introduction, see the talk "Software Security in the Presence of
 /// Faults" by Peter Gutmann (PDF <https://www.cs.auckland.ac.nz/~pgut001/pubs/software_faults.pdf>)
 /// (talk recording <https://www.youtube.com/watch?v=z0C7ymx5Jtk>).
-#[derive(Debug, Clone, Copy)] // TODO: custom Hash
+#[derive(Debug, Clone, Copy)]
 pub struct Coin(u8);
 
 impl Coin {
     #[inline(always)]
     fn to_bool(&self) -> bool {
         self.0.count_ones() >= 4
+    }
+}
+
+impl Hash for Coin {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.to_bool().hash(state);
     }
 }
 
